@@ -14,8 +14,7 @@
  * limitations under the License.
  */
 
-
-package com.starry.myne.database.progress
+package com.starry.myne.database.reader
 
 import androidx.room.Dao
 import androidx.room.Insert
@@ -24,25 +23,37 @@ import androidx.room.Query
 import androidx.room.Update
 import kotlinx.coroutines.flow.Flow
 
-
 @Dao
-interface ProgressDao {
+interface ReaderDao {
+
+    // --- Progress related methods (moved from ProgressDao) ---
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
-    fun insert(progressData: ProgressData)
+    fun insert(readerProgress: ReaderProgress)
 
     @Query("DELETE FROM reader_table WHERE library_item_id = :libraryItemId")
     fun delete(libraryItemId: Int)
 
     @Update
-    fun update(progressData: ProgressData)
+    fun update(readerProgress: ReaderProgress)
 
     @Query("SELECT * FROM reader_table WHERE library_item_id = :libraryItemId")
-    fun getReaderData(libraryItemId: Int): ProgressData?
+    fun getReaderData(libraryItemId: Int): ReaderProgress?
 
     @Query("SELECT * FROM reader_table")
-    fun getAllReaderItems(): List<ProgressData>
+    fun getAllReaderItems(): List<ReaderProgress>
 
     @Query("SELECT * FROM reader_table WHERE library_item_id = :libraryItemId")
-    fun getReaderDataAsFlow(libraryItemId: Int): Flow<ProgressData?>
+    fun getReaderDataAsFlow(libraryItemId: Int): Flow<ReaderProgress?>
+
+    // --- Bookmark related methods ---
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insertBookmark(bookmark: ReaderBookmark)
+
+    @Query("DELETE FROM bookmarks_table WHERE id = :id")
+    suspend fun deleteBookmark(id: Int)
+
+    @Query("SELECT * FROM bookmarks_table WHERE book_id = :bookId ORDER BY created_at DESC")
+    fun getBookmarksForBook(bookId: Int): Flow<List<ReaderBookmark>>
 }
